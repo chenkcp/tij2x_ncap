@@ -1,6 +1,6 @@
 const MockDbProvider = require('./mockDbProvider');
 
-class DbProviderFactory {
+class dbFactory {
   static create(config) {
     switch (config.client) {
       case 'mock':
@@ -11,4 +11,4 @@ class DbProviderFactory {
   }
 }
 
-module.exports = DbProviderFactory;
+module.exports = dbFactory;

@@ -1,0 +1,19 @@
+# Node dependencies
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# React build output
+build/
+dist/
+
+# Environment variables (Sensitive!)
+.env
+.env.local
+.env.*.local
+
+# IDE configurations
+.vscode/
+.idea/
+.DS_Store

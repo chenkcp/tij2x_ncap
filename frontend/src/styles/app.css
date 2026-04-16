@@ -1,12 +1,112 @@
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
-  border: 1px solid #bbb;
-  padding: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f5f5f5;
+}
+
+/* Page Layout */
+.page-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+}
+
+/* Header */
+.header-wrap {
+  background-color: #ffffff;
+  border-bottom: 1px solid #ddd;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.header-wrap h1 {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.alert-text {
+  color: #e74c3c;
+  font-size: 0.85rem;
+  font-weight: normal;
+}
+
+.welcome-text {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Site Tabs */
+.site-tabs {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+  padding: 8px 20px;
+  display: flex;
+  gap: 2px;
+}
+
+.tab-button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.2s;
+  border: 1px solid #555;
+}
+
+.tab-button:first-child {
+  background-color: #28a745;
+}
+
+.tab-button.home-active {
+  background-color: #1e7e34 !important;
+  font-weight: bold;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.tab-button:hover {
+  opacity: 0.8;
+}
+
+.tab-button.active {
+  background-color: #dc3545 !important;
+  font-weight: bold;
+}
+
+/* Main Layout */
+.main-area {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* Side Menu */
+.side-menu {
+  width: 220px;
+  background-color: #ffffff;
+  border-right: 1px solid #ddd;
+  padding: 15px;
 }
 
 .side-menu-title {
   font-weight: bold;
   color: #1f4d8c;
   margin-bottom: 14px;
+  font-size: 0.95rem;
 }
 
 .menu-section {
@@ -16,23 +116,52 @@ body {
 .menu-section-title {
   font-weight: bold;
   margin-bottom: 6px;
+  color: #333;
+  font-size: 0.9rem;
 }
 
 .menu-link {
   display: block;
   color: #1b2d7a;
   text-decoration: none;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
+  padding: 4px 0;
+  font-size: 0.85rem;
+  border-bottom: 1px dotted transparent;
 }
 
+.menu-link:hover {
+  text-decoration: underline;
+  color: #0056b3;
+}
+
+.menu-link.active {
+  font-weight: bold;
+  color: #0056b3;
+}
+
+/* Content Area */
 .content-area {
   flex: 1;
   background: white;
-  min-height: 500px;
-  padding: 16px;
+  padding: 20px;
   border: 1px solid #bbb;
+  overflow-y: auto;
 }
 
+.content-area h2 {
+  margin-bottom: 15px;
+  color: #333;
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+
+.content-area p {
+  margin-bottom: 10px;
+  color: #666;
+}
+
+/* Form Styles */
 .form-panel {
   display: grid;
   gap: 10px;
@@ -46,8 +175,68 @@ body {
   margin-bottom: 12px;
 }
 
+.form-row label {
+  font-weight: 500;
+  min-width: 60px;
+}
+
+.form-row select {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+/* Table Styles */
 .data-table {
   width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.data-table th,
+.data-table td {
+  border: 1px solid #999;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.data-table th {
+  background: #cfeef0;
+  font-weight: bold;
+  color: #333;
+}
+
+.data-table td {
+  background: white;
+}
+
+.data-table tr:nth-child(even) td {
+  background: #f9f9f9;
+}
+
+/* Error and Status Text */
+.error-text {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+/* Button Styles */
+button {
+  font-family: inherit;
+}
+
+input, select, button {
+  font-size: inherit;
+}
+
+/* Additional layout styles for better spacing */
+.page-shell > * {
+  flex-shrink: 0;
+}
+
+.main-area {
+  flex-grow: 1;
+}
   border-collapse: collapse;
 }
 

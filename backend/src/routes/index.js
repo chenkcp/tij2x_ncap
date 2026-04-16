@@ -1,5 +1,7 @@
 //defines API endpoints.
 const express = require("express");
+const resolveSite = require('../middleware/resolveSite');
+const productRoutes = require('./productRoutes');
 const router = express.Router();
 
 // Health check endpoint
@@ -7,15 +9,8 @@ router.get("/health", (req, res) => {
   res.json({ message: "Backend is running" });
 });
 
-// Product routes
-router.get("/sites/:siteCode/products", (req, res) => {
-  const { siteCode } = req.params;
-  // TODO: Implement product logic
-  res.json({ 
-    message: `Products for site ${siteCode}`, 
-    siteCode,
-    products: []
-  });
-});
+// Mount product routes with site resolution middleware
+router.use('/sites/:siteCode', resolveSite);
+router.use('/sites/:siteCode/products', productRoutes);
 
 module.exports = router;

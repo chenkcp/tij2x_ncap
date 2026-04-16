@@ -1,22 +1,27 @@
-function getFamilies(db) {
-  return db.getFamilies();
+class ProductRepository {
+  constructor(db) {
+    this.db = db;
+  }
+
+  async getAll() {
+    // For now, return mock data since we're using MockDbProvider
+    return [];
+  }
+
+  async getByFamily(familyCode) {
+    // Mock implementation 
+    return [];
+  }
+
+  async create(productData) {
+    // Mock implementation
+    return { id: Date.now(), ...productData };
+  }
+
+  async update(id, productData) {
+    // Mock implementation
+    return { id, ...productData };
+  }
 }
 
-function getProductLookup(db, familyCode) {
-  return db.getProductsByFamily(familyCode);
-}
-
-function createProduct(db, payload) {
-  return db.insertProduct(payload);
-}
-
-function updateInkWeight(db, payload) {
-  return db.updateInkWeight(payload);
-}
-
-module.exports = {
-  getFamilies,
-  getProductLookup,
-  createProduct,
-  updateInkWeight
-};
+module.exports = ProductRepository;

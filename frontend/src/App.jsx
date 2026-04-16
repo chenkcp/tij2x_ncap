@@ -1,31 +1,10 @@
-// import { useEffect, useState } from "react";
-
-// function App() {
-//   const [message, setMessage] = useState("");
-
-//   useEffect(() => {
-//     fetch("http://localhost:5000/api/health")
-//       .then((res) => res.json())
-//       .then((data) => setMessage(data.message))
-//       .catch((err) => console.error(err));
-//   }, []);
-
-//   return (
-//     <div>
-//       <h1>React + Node.js + Express</h1>
-//       <p>{message}</p>
-//     </div>
-//   );
-// }
-
-// export default App;
-
+import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import AppLayout from './components/layout/AppLayout';
 import HomePage from './pages/HomePage';
 import ProductLookupPage from './pages/ProductLookupPage';
 import ProductAddPage from './pages/ProductAddPage';
 import InkWeightEditPage from './pages/InkWeightEditPage';
+import AppLayout from './components/layout/AppLayout';
 
 export default function App() {
   return (
