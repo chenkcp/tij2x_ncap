@@ -1,6 +1,6 @@
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
 import { useEffect } from 'react';
-import { useSite } from '../../context/SiteContext';
+import { useSite } from '../../contexts/SiteContext';
 import Header from './Header';
 import SiteTabs from './SiteTabs';
 import SideMenu from './SideMenu';

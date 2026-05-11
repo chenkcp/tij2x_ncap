@@ -1,10 +1,11 @@
-const MockDbProvider = require('./mockDbProvider');
+const MSSQLDbProvider = require('./mssqlDbProvider');
 
 class dbFactory {
   static create(config) {
     switch (config.client) {
-      case 'mock':
-        return new MockDbProvider(config);
+      case 'mssql':
+        return new MSSQLDbProvider(config);
+        //throw new Error('MSSQL provider not implemented yet');
       default:
         throw new Error(`Unsupported DB client: ${config.client}`);
     }

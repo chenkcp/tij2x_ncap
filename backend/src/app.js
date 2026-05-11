@@ -7,18 +7,39 @@ const app = express();
 // Configure CORS to allow frontend access
 app.use(cors({
   origin: [
-    'http://localhost:5173',
-    'http://localhost:5174', 
-    'http://localhost:5175',
-    'http://localhost:5176',
-    'http://localhost:5177',
-    'http://localhost:3000'
+    'http://localhost:5001'
   ],
   credentials: true
 }));
 app.use(express.json());
 
 app.use("/api", require("./routes"));
+
+// OAuth callback route - redirect to frontend with authorization code
+app.get('/nextcapweb/auth/callback', (req, res) => {
+  const { code, state, error, error_description } = req.query;
+  
+  console.log('🔄 OAuth Callback Route Hit');
+  console.log('📍 Full URL:', req.originalUrl);
+  console.log('🎯 Query parameters:', req.query);
+  
+  if (error) {
+    console.error('❌ OAuth error in callback:', error, error_description);
+    // Redirect to frontend with error
+    const frontendUrl = `http://localhost:5001/auth?error=${encodeURIComponent(error)}&error_description=${encodeURIComponent(error_description || '')}`;
+    return res.redirect(frontendUrl);
+  }
+  
+  if (code) {
+    console.log('✅ Authorization code received, redirecting to frontend');
+    // Redirect to frontend with authorization code
+    const frontendUrl = `http://localhost:5001/auth?code=${encodeURIComponent(code)}${state ? `&state=${encodeURIComponent(state)}` : ''}`;
+    return res.redirect(frontendUrl);
+  }
+  
+  console.warn('⚠️  No authorization code or error in callback');
+  res.redirect('http://localhost:5001/auth?error=invalid_callback');
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

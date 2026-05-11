@@ -14,7 +14,8 @@ export const menuConfig = [
   {
     title: 'Edit in:',
     items: [
-      { label: 'product table for Inkweight', path: 'edit/inkweight' }
+      { label: 'product table for Inkweight', path: 'edit/inkweight' },
+      { label: 'nextcap product dropdown', path: 'edit/nextcap-dropdown' }
     ]
   }
 ];
