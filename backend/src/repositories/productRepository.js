@@ -6,16 +6,18 @@ class ProductRepository {
   }
 
   async getAll() {
-    // For now, return mock data since we're using MockDbProvider
+    // Placeholder method currently unused by active routes.
     return [];
   }
 
   async getFamilies(familyCode) {
     const query = `
       SELECT distinct product_type as family_code, product_type as family_name
-      FROM nextcap_cm.dbo.products 
+      FROM dbo.products 
       ORDER BY product_type
     `;
+    console.log(`[${this.nextcapDb?.dbName || 'nextcapDb'}] Fetching product families...`);
+    console.log(`[${this.nextcapDb?.dbName || 'nextcapDb'}] Families query:`, query.replace(/\s+/g, ' ').trim());
     return await this.nextcapDb.query(query);
   }
 
@@ -33,7 +35,7 @@ class ProductRepository {
       console.log('3. Starting Step 1: Query nextcap database');
       const familyQuery = `
         SELECT product_number 
-        FROM nextcap_cm.dbo.products 
+        FROM dbo.products 
         WHERE product_type = @familyCode
       `;
       
@@ -260,7 +262,7 @@ class ProductRepository {
       // Also insert into nextcap products table for the product type
       if (productData.productType) {
         const nextcapQuery = `
-          INSERT INTO nextcap_cm.dbo.products (product_number, product_name, product_type)
+          INSERT INTO dbo.products (product_number, product_name, product_type)
           VALUES (@productNumber, @productName, @productType)
         `;
         

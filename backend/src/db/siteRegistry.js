@@ -1,13 +1,6 @@
-// Load environment variables
-require('dotenv').config();
-
-// DEBUG: Check what environment variables are loaded
-console.log('=== DEBUG Environment Variables ===');
-console.log('CJA1_PRODUCT_DB_CONNECTION:', process.env.CJA1_PRODUCT_DB_CONNECTION?.substring(0, 80) + '...');
-console.log('CJA1_NEXTCAP_DB_CONNECTION:', process.env.CJA1_NEXTCAP_DB_CONNECTION?.substring(0, 80) + '...');
-console.log('Are they different?', 
-  process.env.CJA1_PRODUCT_DB_CONNECTION !== process.env.CJA1_NEXTCAP_DB_CONNECTION
-);
+// Connection strings are injected into process.env before this module is loaded:
+// - In production (ECS): loaded from AWS Secrets Manager via loadSecrets() in server.js
+// - In development: loaded from .env via dotenv in server.js
 
 module.exports = {
   CJASite_1: {
@@ -80,6 +73,18 @@ module.exports = {
       client: 'mssql', 
       connectionString: process.env.CJA_Penang_NEXTCAP_DB_CONNECTION,
       name: 'CJA_Penang_NEXTCAP_DB' 
+    }
+  },
+  'TEST': {
+    productDb: { 
+      client: 'mssql', 
+      connectionString: process.env.TEST_PRODUCT_DB_CONNECTION,
+      name: 'TEST_PRODUCT_DB' 
+    },
+    nextcapDb: { 
+      client: 'mssql', 
+      connectionString: process.env.TEST_NEXTCAP_DB_CONNECTION,
+      name: 'TEST_NEXTCAP_DB' 
     }
   },
 };

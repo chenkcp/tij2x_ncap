@@ -9,7 +9,7 @@ class NextcapRepository {
     // Use the correct column names that exist in the database
     const query = `
       SELECT client_name, line_type, line_number, source 
-      FROM nextcap_cm.dbo.client_customers
+      FROM dbo.client_customers
       ORDER BY client_name, line_type, line_number, source
     `;
     
@@ -45,7 +45,7 @@ class NextcapRepository {
     
     const query = `
       SELECT line_type, line_number, [source], product_name, product_number, product_type 
-      FROM nextcap_cm.dbo.products 
+      FROM dbo.products 
       WHERE line_type = @line_type 
         AND line_number = @line_number 
         AND [source] = @source
@@ -121,7 +121,7 @@ class NextcapRepository {
     }
 
     const query = `
-      UPDATE nextcap_cm.dbo.products 
+      UPDATE dbo.products 
       SET ${updateFields.join(', ')}
       WHERE line_type = @where_line_type 
         AND line_number = @where_line_number 
@@ -164,7 +164,7 @@ class NextcapRepository {
     const lineNumberInt = parseInt(line_number, 10);
     
     const query = `
-      DELETE FROM nextcap_cm.dbo.products 
+      DELETE FROM dbo.products 
       WHERE line_type = @line_type 
         AND line_number = @line_number 
         AND [source] = @source
@@ -214,7 +214,7 @@ class NextcapRepository {
     const lineNumberInt = parseInt(line_number, 10);
     
     const query = `
-      INSERT INTO nextcap_cm.dbo.products 
+      INSERT INTO dbo.products 
       (line_type, line_number, [source], product_name, product_number, product_type)
       VALUES (@line_type, @line_number, @source, @product_name, @product_number, @product_type)
     `;

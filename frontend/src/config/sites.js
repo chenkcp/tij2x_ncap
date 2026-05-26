@@ -4,5 +4,6 @@ export const sites = [
   'PDYSite_1',
   'PDYSite_2',
   'STL-TUAS',
-  'CJA-Penang'
+  'CJA-Penang',
+  'TEST'
 ];

@@ -4,8 +4,8 @@ class dbFactory {
   static create(config) {
     switch (config.client) {
       case 'mssql':
+      case 'odbc':
         return new MSSQLDbProvider(config);
-        //throw new Error('MSSQL provider not implemented yet');
       default:
         throw new Error(`Unsupported DB client: ${config.client}`);
     }

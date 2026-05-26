@@ -33,6 +33,21 @@ const verifyJWT = (token) => {
   }
 };
 
+const maskValue = (value, visible = 4) => {
+  if (!value) return 'not provided';
+  const text = String(value);
+  if (text.length <= visible) return '*'.repeat(text.length);
+  return `${text.slice(0, visible)}***`;
+};
+
+const logOAuthRequest = ({ label, url, method, headers, body }) => {
+  console.log(`[OAuth][Outbound] ${label}`);
+  console.log('[OAuth][Outbound] URL:', url);
+  console.log('[OAuth][Outbound] Method:', method);
+  console.log('[OAuth][Outbound] Headers:', headers);
+  console.log('[OAuth][Outbound] Body:', body);
+};
+
 // POST /api/auth/token - Exchange authorization code for access token
 router.post('/token', async (req, res) => {
   try {
@@ -57,22 +72,42 @@ router.post('/token', async (req, res) => {
     console.log('Exchanging authorization code with HP OAuth...');
     console.log('Using CLIENT_ID:', process.env.OAUTH_CLIENT_ID);
     console.log('CLIENT_SECRET length:', process.env.OAUTH_CLIENT_SECRET?.length);
-    console.log('Redirect URI:', 'http://localhost:5000/nextcapweb/auth/callback');
+    console.log('Redirect URI:', process.env.OAUTH_REDIRECT_URI);
     
     // Make request to HP OAuth server WITH client secret
-    const tokenResponse = await fetch('https://login-itg.external.hp.com/as/token.oauth2', {
+    const tokenUrl = 'https://login-itg.external.hp.com/as/token.oauth2';
+    const tokenRequestBody = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code: code,
+      client_id: process.env.OAUTH_CLIENT_ID,
+      client_secret: process.env.OAUTH_CLIENT_SECRET,
+      redirect_uri: process.env.OAUTH_REDIRECT_URI // 'http://localhost:5000/nextcapweb/auth/callback'
+    });
+
+    logOAuthRequest({
+      label: 'Token Exchange (authorization_code)',
+      url: tokenUrl,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      },
+      body: {
+        grant_type: 'authorization_code',
+        code: maskValue(code, 10),
+        client_id: maskValue(process.env.OAUTH_CLIENT_ID, 8),
+        client_secret: maskValue(process.env.OAUTH_CLIENT_SECRET, 0),
+        redirect_uri: process.env.OAUTH_REDIRECT_URI
+      }
+    });
+
+    const tokenResponse = await fetch(tokenUrl, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json'
       },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        code: code,
-        client_id: process.env.OAUTH_CLIENT_ID,
-        client_secret: process.env.OAUTH_CLIENT_SECRET,
-        redirect_uri: 'http://localhost:5000/nextcapweb/auth/callback'
-      })
+      body: tokenRequestBody
     });
 
     // Track authorization return from HP OAuth provider
@@ -132,6 +167,16 @@ router.post('/token', async (req, res) => {
       for (const endpoint of userinfoEndpoints) {
         try {
           console.log(`🔍 Trying userinfo endpoint: ${endpoint}`);
+          logOAuthRequest({
+            label: 'Userinfo Lookup',
+            url: endpoint,
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${maskValue(tokens.access_token, 12)}`
+            },
+            body: 'none'
+          });
+
           userResponse = await fetch(endpoint, {
             headers: { 'Authorization': `Bearer ${tokens.access_token}` }
           });
@@ -237,18 +282,37 @@ router.post('/token/refresh', async (req, res) => {
     console.log('Refreshing access token with HP OAuth...');
     
     // Backend makes request to HP with client secret
-    const response = await fetch('https://login-itg.external.hp.com/as/token.oauth2', {
+    const refreshUrl = 'https://login-itg.external.hp.com/as/token.oauth2';
+    const refreshRequestBody = new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: refresh_token,
+      client_id: process.env.OAUTH_CLIENT_ID,
+      client_secret: process.env.OAUTH_CLIENT_SECRET
+    });
+
+    logOAuthRequest({
+      label: 'Token Refresh (refresh_token)',
+      url: refreshUrl,
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json'
       },
-      body: new URLSearchParams({
+      body: {
         grant_type: 'refresh_token',
-        refresh_token: refresh_token,
-        client_id: process.env.OAUTH_CLIENT_ID,
-        client_secret: process.env.OAUTH_CLIENT_SECRET
-      })
+        refresh_token: maskValue(refresh_token, 10),
+        client_id: maskValue(process.env.OAUTH_CLIENT_ID, 8),
+        client_secret: maskValue(process.env.OAUTH_CLIENT_SECRET, 0)
+      }
+    });
+
+    const response = await fetch(refreshUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      },
+      body: refreshRequestBody
     });
 
     if (!response.ok) {
@@ -269,6 +333,16 @@ router.post('/token/refresh', async (req, res) => {
     // Get updated user info and create new JWT
     let userInfo = null;
     try {
+      logOAuthRequest({
+        label: 'Refresh Flow Userinfo Lookup',
+        url: 'https://login-itg.external.hp.com/as/userinfo.oauth2',
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${maskValue(data.access_token, 12)}`
+        },
+        body: 'none'
+      });
+
       const userResponse = await fetch('https://login-itg.external.hp.com/as/userinfo.oauth2', {
         headers: { 'Authorization': `Bearer ${data.access_token}` }
       });

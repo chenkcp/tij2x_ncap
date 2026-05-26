@@ -3,7 +3,7 @@ import axios from 'axios';
 // OAuth Configuration
 const OAUTH_CONFIG = {
   CLIENT_ID: import.meta.env.VITE_OAUTH_CLIENT_ID || 'ca8b6338-49cb-44b8-a97f-8bec188976a2',
-  REDIRECT_URI: import.meta.env.VITE_REDIRECT_URI || 'http://localhost:5001/nextcapweb/auth/callback',
+  REDIRECT_URI: import.meta.env.VITE_REDIRECT_URI || `${window.location.origin}/nextcapweb/auth/callback`,
   LOGIN_URL: import.meta.env.VITE_LOGIN_URL || 'https://login-itg.external.hp.com/as/authorization.oauth2',
   TOKEN_URL: import.meta.env.VITE_TOKEN_URL || 'http://localhost:5000/api/auth/token',
   SCOPE: 'openid profile email',
@@ -45,7 +45,15 @@ export const redirectToLogin = (returnUrl = null) => {
   }
 
   const state = returnUrl ? btoa(JSON.stringify({ returnUrl })) : null;
-  window.location.href = getLoginUrl(state);
+  const loginUrl = getLoginUrl(state);
+
+  console.log('[OAuth][Frontend] Redirecting browser to provider');
+  console.log('[OAuth][Frontend] Login URL:', OAUTH_CONFIG.LOGIN_URL);
+  console.log('[OAuth][Frontend] Redirect URI:', OAUTH_CONFIG.REDIRECT_URI);
+  console.log('[OAuth][Frontend] Client ID:', OAUTH_CONFIG.CLIENT_ID?.slice(0, 6) + '***');
+  console.log('[OAuth][Frontend] Full authorize URL:', loginUrl);
+
+  window.location.href = loginUrl;
 };
 
 // Prevent duplicate token exchange requests

@@ -15,9 +15,13 @@ export default defineConfig({
     minify: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          auth: ['jwt-decode', 'axios']
+        manualChunks: (id) => {
+          if (id.includes('node_modules/react')) {
+            return 'vendor';
+          }
+          if (id.includes('node_modules/jwt-decode') || id.includes('node_modules/axios')) {
+            return 'auth';
+          }
         }
       }
     }

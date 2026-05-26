@@ -1,4 +1,9 @@
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+
+const toAbsoluteUrl = (path) => {
+  // Support both absolute API bases and relative bases like /api.
+  return new URL(path, window.location.origin);
+};
 
 // Generic error handler for API responses with special handling for confirmation needed
 const handleApiResponse = async (response) => {
@@ -55,7 +60,7 @@ export async function fetchProductFamilies(siteCode) {
 
 export async function fetchProductsByFamily(siteCode, familyCode) {
   try {
-    const url = new URL(`${API_BASE}/sites/${siteCode}/products/lookup`);
+    const url = toAbsoluteUrl(`${API_BASE}/sites/${siteCode}/products/lookup`);
     if (familyCode) {
       url.searchParams.set('familyCode', familyCode);
     }
@@ -145,7 +150,7 @@ export async function fetchNextcapClients(siteCode) {
 
 export async function fetchNextcapProducts(siteCode, params) {
   try {
-    const url = new URL(`${API_BASE}/sites/${siteCode}/nextcap/products`);
+    const url = toAbsoluteUrl(`${API_BASE}/sites/${siteCode}/nextcap/products`);
     if (params.line_type) url.searchParams.set('line_type', params.line_type);
     if (params.line_number) url.searchParams.set('line_number', params.line_number);
     if (params.source) url.searchParams.set('source', params.source);
@@ -202,7 +207,7 @@ export async function insertNextcapProducts(siteCode, payload) {
 
 export async function fetchProductReference(siteCode, params = {}) {
   try {
-    const url = new URL(`${API_BASE}/sites/${siteCode}/nextcap/product-ref`);
+    const url = toAbsoluteUrl(`${API_BASE}/sites/${siteCode}/nextcap/product-ref`);
     if (params.page) url.searchParams.set('page', params.page);
     if (params.limit) url.searchParams.set('limit', params.limit);
     if (params.search) url.searchParams.set('search', params.search);

@@ -52,8 +52,10 @@ class ProductService {
     try {
       console.log('Getting families for site:', site);
       const repo = this._getRepository(site);
+      console.log('About to query product families from nextcap DB...');
       const families = await repo.getFamilies();
-      console.log('Found families:', families);
+      console.log('Found families count:', Array.isArray(families) ? families.length : 0);
+      console.log('Sample families:', Array.isArray(families) ? families.slice(0, 5) : families);
       return families;
     } catch (error) {
       console.error('Error in getFamilies:', error);
