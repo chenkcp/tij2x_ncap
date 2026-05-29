@@ -68,7 +68,7 @@ export default function HomePage() {
               <div style={{ paddingLeft: '20px' }}>
                 <div><strong>Name:</strong> {siteInfo.connectionInfo.productDb.name}</div>
                 <div><strong>Client:</strong> {siteInfo.connectionInfo.productDb.client}</div>
-                <div><strong>Connection:</strong> {siteInfo.connectionInfo.productDb.connectionString}</div>
+                <div><strong>Configured:</strong> {siteInfo.connectionInfo.productDb.configured ? 'Yes' : 'No'}</div>
               </div>
             </div>
             
@@ -77,7 +77,7 @@ export default function HomePage() {
               <div style={{ paddingLeft: '20px' }}>
                 <div><strong>Name:</strong> {siteInfo.connectionInfo.nextcapDb.name}</div>
                 <div><strong>Client:</strong> {siteInfo.connectionInfo.nextcapDb.client}</div>
-                <div><strong>Connection:</strong> {siteInfo.connectionInfo.nextcapDb.connectionString}</div>
+                <div><strong>Configured:</strong> {siteInfo.connectionInfo.nextcapDb.configured ? 'Yes' : 'No'}</div>
               </div>
             </div>
           </div>

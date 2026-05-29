@@ -57,7 +57,7 @@ class MSSQLDbProvider {
     const user = source['user id'] || source.uid || source.user;
     const password = source.password || source.pwd;
 
-    const encrypt = this._toBool(source.encrypt, false);
+    const encrypt = this._toBool(source.encrypt, true);
     const trustServerCertificate = this._toBool(source.trustservercertificate, true);
     const connectionTimeoutMs = this._toMs(
       source['connection timeout'] || source.connectiontimeout,

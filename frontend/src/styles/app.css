@@ -122,11 +122,16 @@ body {
 
 .menu-link {
   display: block;
+  width: 100%;
+  background: none;
+  border: 0;
   color: #1b2d7a;
   text-decoration: none;
   margin-bottom: 4px;
   padding: 4px 0;
   font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
   border-bottom: 1px dotted transparent;
 }
 

@@ -41,18 +41,12 @@ const AuthenticationPage = () => {
       setTokenExchangeAttempted(true);
       handleOAuthCallback(authCode, state);
     } else if (!authCode) {
-      // Regular auth page load, check for cached token expiration
+      // Regular auth page load; AuthContext validates the cookie-backed session.
       validateCachedToken();
     }
   }, [isAuthenticated, authLoading, location.search, navigate, tokenExchangeAttempted]);
 
   const validateCachedToken = () => {
-    const cachedToken = sessionStorage.getItem('authToken');
-    if (cachedToken) {
-      setMessage('Validating existing session...');
-      // The useAuth hook will automatically validate the token
-      // If invalid, the user will be logged out automatically
-    }
     setLoading(false);
   };
 
@@ -80,8 +74,8 @@ const AuthenticationPage = () => {
       const tokenResponse = await getToken(authCode, state);
 
       if (tokenResponse.success) {
-        // Login with the access token
-        const loginResult = login(tokenResponse.access_token);
+        // Backend set the HttpOnly auth cookie; keep only user/session state in React.
+        const loginResult = login(tokenResponse.user);
 
         if (loginResult.success) {
           setMessage('Authentication successful! Redirecting...');

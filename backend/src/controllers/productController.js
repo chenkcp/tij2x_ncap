@@ -18,12 +18,12 @@ async function getSiteInfo(req, res, next) {
           name: req.siteContext.productDb.name,
           client: req.siteContext.productDb.client,
           // Only show masked connection string for security
-          connectionString: maskConnectionString(req.siteContext.productDb.connectionString)
+          configured: Boolean(req.siteContext.productDb.connectionString)
         },
         nextcapDb: {
           name: req.siteContext.nextcapDb.name,
           client: req.siteContext.nextcapDb.client,
-          connectionString: maskConnectionString(req.siteContext.nextcapDb.connectionString)
+          configured: Boolean(req.siteContext.nextcapDb.connectionString)
         }
       }
     };

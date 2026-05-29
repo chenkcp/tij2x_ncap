@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 const toAbsoluteUrl = (path) => {
   // Support both absolute API bases and relative bases like /api.
@@ -40,7 +40,7 @@ const handleApiResponse = async (response) => {
 
 export async function fetchSiteInfo(siteCode) {
   try {
-    const response = await fetch(`${API_BASE}/sites/${siteCode}/products/site-info`);
+    const response = await fetch(`${API_BASE}/sites/${siteCode}/products/site-info`, { credentials: 'include' });
     return await handleApiResponse(response);
   } catch (error) {
     console.error('Failed to fetch site info:', error);
@@ -50,7 +50,7 @@ export async function fetchSiteInfo(siteCode) {
 
 export async function fetchProductFamilies(siteCode) {
   try {
-    const response = await fetch(`${API_BASE}/sites/${siteCode}/products/families`);
+    const response = await fetch(`${API_BASE}/sites/${siteCode}/products/families`, { credentials: 'include' });
     return await handleApiResponse(response);
   } catch (error) {
     console.error('Failed to fetch product families:', error);
@@ -64,7 +64,7 @@ export async function fetchProductsByFamily(siteCode, familyCode) {
     if (familyCode) {
       url.searchParams.set('familyCode', familyCode);
     }
-    const response = await fetch(url.toString());
+    const response = await fetch(url.toString(), { credentials: 'include' });
     return await handleApiResponse(response);
   } catch (error) {
     console.error('Failed to fetch products by family:', error);
@@ -76,6 +76,7 @@ export async function createProduct(siteCode, payload) {
   try {
     const response = await fetch(`${API_BASE}/sites/${siteCode}/products/lookup`, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
@@ -90,6 +91,7 @@ export async function updateInkWeight(siteCode, payload) {
   try {
     const response = await fetch(`${API_BASE}/sites/${siteCode}/products/inkweight`, {
       method: 'PUT',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
@@ -104,6 +106,7 @@ export async function updateProductWeights(siteCode, updates, confirmNewPica = f
   try {
     const response = await fetch(`${API_BASE}/sites/${siteCode}/products/weights`, {
       method: 'PUT',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ updates, confirmNewPica })
     });
@@ -120,7 +123,7 @@ export async function updateProductWeights(siteCode, updates, confirmNewPica = f
 
 export async function checkProductExists(siteCode, productNumber) {
   try {
-    const response = await fetch(`${API_BASE}/sites/${siteCode}/products/check/${encodeURIComponent(productNumber)}`);
+    const response = await fetch(`${API_BASE}/sites/${siteCode}/products/check/${encodeURIComponent(productNumber)}`, { credentials: 'include' });
     return await handleApiResponse(response);
   } catch (error) {
     console.error('Failed to check product existence:', error);
@@ -130,7 +133,7 @@ export async function checkProductExists(siteCode, productNumber) {
 
 export async function fetchProductByNumber(siteCode, productNumber) {
   try {
-    const response = await fetch(`${API_BASE}/sites/${siteCode}/products/single/${encodeURIComponent(productNumber)}`);
+    const response = await fetch(`${API_BASE}/sites/${siteCode}/products/single/${encodeURIComponent(productNumber)}`, { credentials: 'include' });
     return await handleApiResponse(response);
   } catch (error) {
     console.error('Failed to fetch product by number:', error);
@@ -140,7 +143,7 @@ export async function fetchProductByNumber(siteCode, productNumber) {
 
 export async function fetchNextcapClients(siteCode) {
   try {
-    const response = await fetch(`${API_BASE}/sites/${siteCode}/nextcap/clients`);
+    const response = await fetch(`${API_BASE}/sites/${siteCode}/nextcap/clients`, { credentials: 'include'});
     return await handleApiResponse(response);
   } catch (error) {
     console.error('Failed to fetch nextcap clients:', error);
@@ -155,7 +158,7 @@ export async function fetchNextcapProducts(siteCode, params) {
     if (params.line_number) url.searchParams.set('line_number', params.line_number);
     if (params.source) url.searchParams.set('source', params.source);
     
-    const response = await fetch(url.toString());
+    const response = await fetch(url.toString(), { credentials: 'include' });
     return await handleApiResponse(response);
   } catch (error) {
     console.error('Failed to fetch nextcap products:', error);
@@ -167,6 +170,7 @@ export async function updateNextcapProducts(siteCode, updates) {
   try {
     const response = await fetch(`${API_BASE}/sites/${siteCode}/nextcap/products`, {
       method: 'PUT',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ updates })
     });
@@ -181,6 +185,7 @@ export async function deleteNextcapProducts(siteCode, payload) {
   try {
     const response = await fetch(`${API_BASE}/sites/${siteCode}/nextcap/products`, {
       method: 'DELETE',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
@@ -195,6 +200,7 @@ export async function insertNextcapProducts(siteCode, payload) {
   try {
     const response = await fetch(`${API_BASE}/sites/${siteCode}/nextcap/products`, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
@@ -213,7 +219,7 @@ export async function fetchProductReference(siteCode, params = {}) {
     if (params.search) url.searchParams.set('search', params.search);
     if (params.client) url.searchParams.set('client', params.client);
     
-    const response = await fetch(url.toString());
+    const response = await fetch(url.toString(), { credentials: 'include' });
     return await handleApiResponse(response);
   } catch (error) {
     console.error('Failed to fetch product reference:', error);

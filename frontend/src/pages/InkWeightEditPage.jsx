@@ -10,24 +10,30 @@ export default function InkWeightEditPage() {
   const [products, setProducts] = useState([]);
   const [editingProducts, setEditingProducts] = useState({}); // Store edited weights
   const [loading, setLoading] = useState(false);
+  const [familiesLoading, setFamiliesLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [searchMode, setSearchMode] = useState(''); // 'family' or 'number'
 
   // Load product families on component mount
   useEffect(() => {
+    let ignore = false;
     async function loadFamilies() {
       try {
+        setFamiliesLoading(true);
         setMessage('');
         const response = await fetchProductFamilies(siteCode);
-        if (response.success) {
+        if (!ignore && response.success) {
           setFamilies(response.data);
         }
       } catch (error) {
-        setMessage(`Error loading families: ${error.message}`);
+        if (!ignore) setMessage(`Error loading families: ${error.message}`);
+      } finally {
+        if (!ignore) setFamiliesLoading(false);
       }
     }
     loadFamilies();
+    return () => { ignore = true; };
   }, [siteCode]);
 
   // Load products when family is selected
@@ -334,15 +340,21 @@ export default function InkWeightEditPage() {
           <select
             value={selectedFamily}
             onChange={handleFamilyChange}
+            disabled={familiesLoading}
             style={{ padding: '8px', minWidth: '300px' }}
           >
-            <option value="">--Select Product Type--</option>
+            <option value="">{familiesLoading ? 'Loading product families...' : '--Select Product Type--'}</option>
             {families.map((family) => (
               <option key={family.family_code} value={family.family_code}>
                 {family.family_name}
               </option>
             ))}
           </select>
+          {familiesLoading && (
+            <div style={{ marginTop: '6px', color: '#007bff', fontSize: '13px' }}>
+              Loading product families...
+            </div>
+          )}
         </div>
         
         {/* Clear/Reset Button */}

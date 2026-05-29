@@ -10,6 +10,7 @@ export default function ProductLookupPage() {
   const [selectedFamily, setSelectedFamily] = useState('');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [familiesLoading, setFamiliesLoading] = useState(false);
   const [error, setError] = useState('');
 
   // Load families on component mount
@@ -18,6 +19,7 @@ export default function ProductLookupPage() {
     async function loadFamilies() {
       try {
         console.log('Loading families for site:', siteCode);
+        setFamiliesLoading(true);
         setError('');
         const response = await fetchProductFamilies(siteCode);
         console.log('Families response:', response);
@@ -28,6 +30,8 @@ export default function ProductLookupPage() {
       } catch (err) {
         console.error('Error loading families:', err);
         if (!ignore) setError(err.message);
+      } finally {
+        if (!ignore) setFamiliesLoading(false);
       }
     }
     loadFamilies();
@@ -69,8 +73,9 @@ export default function ProductLookupPage() {
         <select 
           value={selectedFamily} 
           onChange={(e) => setSelectedFamily(e.target.value)}
+          disabled={familiesLoading}
         >
-          <option value="">--Select Product--</option>
+          <option value="">{familiesLoading ? 'Loading product families...' : '--Select Product--'}</option>
           {families.map((family) => (
             <option key={family.family_code} value={family.family_code}>
               {family.family_name}
@@ -80,6 +85,7 @@ export default function ProductLookupPage() {
       </div>
 
       {error && <p className="error-text">Error: {error}</p>}
+      {familiesLoading && <p>Loading product families...</p>}
       {loading && <p>Loading products...</p>}
       
       {products.length > 0 && (

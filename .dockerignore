@@ -1,0 +1,25 @@
+# Git metadata
+.git
+.gitignore
+
+# Dependencies and build artifacts
+node_modules
+**/node_modules
+**/dist
+**/build
+**/.cache
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+
+# Logs and editor files
+**/*.log
+.vscode
+.idea
+.DS_Store

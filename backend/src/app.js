@@ -3,16 +3,20 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const frontendPublicDir = path.join(__dirname, "..", "public");
 const frontendIndexFile = path.join(frontendPublicDir, "index.html");
-const hasBuiltFrontend = fs.existsSync(frontendIndexFile);
+const isProduction = process.env.NODE_ENV === "production";
+const hasBuiltFrontend = isProduction && fs.existsSync(frontendIndexFile);
 
 const defaultFrontendUrl = "http://localhost:5001";
-const frontendUrl = hasBuiltFrontend
+const configuredFrontendUrl = (process.env.FRONTEND_URL || defaultFrontendUrl).replace(/\/$/, "");
+
+const frontendUrl = isProduction && hasBuiltFrontend
   ? ""
-  : (process.env.FRONTEND_URL || defaultFrontendUrl).replace(/\/$/, "");
+  : configuredFrontendUrl;
 
 const defaultCorsOrigin = hasBuiltFrontend
   ? `http://localhost:${process.env.PORT || 5000}`
@@ -22,7 +26,7 @@ if (hasBuiltFrontend) {
   console.log(`[Startup] Frontend build detected at ${frontendPublicDir}`);
   console.log("[Startup] Serving frontend static files from container on / and /assets/*");
 } else {
-  console.log(`[Startup] Frontend build not found at ${frontendPublicDir}`);
+  console.log(`[Startup] Frontend started in dev or build not found at ${frontendPublicDir}`);
   console.log(`[Startup] Expecting separate frontend dev server at ${frontendUrl}`);
 }
 
@@ -36,6 +40,7 @@ app.use(cors({
   origin: corsOrigins,
   credentials: true
 }));
+app.use(cookieParser());
 app.use(express.json());
 
 // Health check endpoint for AWS ALB / ECS

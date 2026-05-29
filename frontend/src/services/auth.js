@@ -1,14 +1,18 @@
 import axios from 'axios';
 
+axios.defaults.withCredentials = true;
+
 // OAuth Configuration
 const OAUTH_CONFIG = {
   CLIENT_ID: import.meta.env.VITE_OAUTH_CLIENT_ID || 'ca8b6338-49cb-44b8-a97f-8bec188976a2',
   REDIRECT_URI: import.meta.env.VITE_REDIRECT_URI || `${window.location.origin}/nextcapweb/auth/callback`,
   LOGIN_URL: import.meta.env.VITE_LOGIN_URL || 'https://login-itg.external.hp.com/as/authorization.oauth2',
-  TOKEN_URL: import.meta.env.VITE_TOKEN_URL || 'http://localhost:5000/api/auth/token',
+  TOKEN_URL: import.meta.env.VITE_TOKEN_URL || '/api/auth/token',
   SCOPE: 'openid profile email',
   RESPONSE_TYPE: 'code'
 };
+
+const AUTH_BASE_URL = OAUTH_CONFIG.TOKEN_URL.replace(/\/token\/?$/, '');
 
 // Set default axios authorization header
 export const setAuthToken = (token) => {
@@ -48,11 +52,12 @@ export const redirectToLogin = (returnUrl = null) => {
   const loginUrl = getLoginUrl(state);
 
   console.log('[OAuth][Frontend] Redirecting browser to provider');
-  console.log('[OAuth][Frontend] Login URL:', OAUTH_CONFIG.LOGIN_URL);
-  console.log('[OAuth][Frontend] Redirect URI:', OAUTH_CONFIG.REDIRECT_URI);
-  console.log('[OAuth][Frontend] Client ID:', OAUTH_CONFIG.CLIENT_ID?.slice(0, 6) + '***');
-  console.log('[OAuth][Frontend] Full authorize URL:', loginUrl);
-
+  if (import.meta.env.DEV) {
+    console.log('[OAuth][Frontend] Login URL:', OAUTH_CONFIG.LOGIN_URL);
+    console.log('[OAuth][Frontend] Redirect URI:', OAUTH_CONFIG.REDIRECT_URI);
+    console.log('[OAuth][Frontend] Client ID:', OAUTH_CONFIG.CLIENT_ID?.slice(0, 6) + '***');
+    console.log('[OAuth][Frontend] Full authorize URL:', loginUrl);
+  }
   window.location.href = loginUrl;
 };
 
@@ -79,26 +84,29 @@ export const getToken = async (authorizationCode, state = null) => {
     console.log('🔄 Frontend Token Exchange Tracking');
     console.log('📍 Timestamp:', new Date().toISOString());
     console.log('💫 Sending request to backend...');
-    console.log('🎯 Target URL:', OAUTH_CONFIG.TOKEN_URL);
-    console.log('🔑 Authorization code (first 10 chars):', authorizationCode?.substring(0, 10) + '...');
-    console.log('🔗 State parameter:', state || 'None');
-    
+    if (import.meta.env.DEV) {
+     console.log('🎯 Target URL:', OAUTH_CONFIG.TOKEN_URL);
+     console.log('🔑 Authorization code (first 10 chars):', authorizationCode?.substring(0, 10) + '...');
+     console.log('🔗 State parameter:', state || 'None');
+    }
     // Create and store the request promise
     inProgressTokenRequest = axios.post(OAUTH_CONFIG.TOKEN_URL, {
       code: authorizationCode,
       ...(state && { state })
+    }, {
+      withCredentials: true
     }).then(response => {
       console.log('✅ Backend response received');
-      console.log('📊 Response status:', response.status);
-      console.log('🎆 Response data keys:', Object.keys(response.data));
-      console.log('🔑 Access token received from backend:', response.data.access_token ? 'Yes' : 'No');
-
+      if (import.meta.env.DEV) {
+       console.log('📊 Response status:', response.status);
+       console.log('🎆 Response data keys:', Object.keys(response.data));
+       console.log('🍪 Auth cookie set by backend:', response.data.success ? 'Expected' : 'No');
+      }
       const result = response.data.success ? {
         success: true,
-        access_token: response.data.access_token,
-        token_type: response.data.token_type || 'Bearer',
+        token_type: response.data.token_type || 'Cookie',
         expires_in: response.data.expires_in,
-        refresh_token: response.data.refresh_token
+        user: response.data.user
       } : {
         success: false,
         error: response.data.error || 'Token exchange failed'
@@ -169,6 +177,22 @@ export const refreshToken = async (refreshToken) => {
   }
 };
 
+export const verifySession = async () => {
+  const response = await axios.get(`${AUTH_BASE_URL}/verify`, {
+    withCredentials: true
+  });
+
+  return response.data;
+};
+
+export const logoutSession = async () => {
+  const response = await axios.post(`${AUTH_BASE_URL}/logout`, {}, {
+    withCredentials: true
+  });
+
+  return response.data;
+};
+
 // Logout from OAuth provider (if supported)
 export const logoutFromProvider = () => {
   const logoutUrl = import.meta.env.VITE_LOGOUT_URL;
@@ -226,6 +250,8 @@ export default {
   redirectToLogin,
   getToken,
   refreshToken,
+  verifySession,
+  logoutSession,
   validateSession,
   logoutFromProvider,
   parseOAuthState,

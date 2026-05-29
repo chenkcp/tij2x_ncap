@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { clearAuthToken, setAuthToken } from '../services/auth';
+import { clearAuthToken, logoutSession, verifySession } from '../services/auth';
 
 const AuthContext = createContext();
+const AUTH_TAB_MARKER = 'authTabActive';
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -13,11 +14,8 @@ export const useAuth = () => {
 };
 
 export const useIsAuthenticated = () => {
-  const { isAuthenticated, checkTokenExpiration } = useAuth();
-  
-  // Check token expiration every time this hook is called
-  const isValid = checkTokenExpiration();
-  return isAuthenticated && isValid;
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated;
 };
 
 export const AuthProvider = ({ children }) => {
@@ -31,27 +29,55 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const initializeAuth = () => {
-    try {
-      const storedToken = sessionStorage.getItem('authToken');
-      const storedUser = sessionStorage.getItem('authUser');
+  // const initializeAuth = () => {
+  //   try {
+  //     // const storedToken = sessionStorage.getItem('authToken');
+  //     // const storedUser = sessionStorage.getItem('authUser');
 
-      if (storedToken && storedUser) {
-        const userData = JSON.parse(storedUser);
+  //     if (storedToken && storedUser) {
+  //       const userData = JSON.parse(storedUser);
         
-        // Check if token is still valid
-        if (isTokenValid(storedToken)) {
-          setToken(storedToken);
-          setUser(userData);
-          setIsAuthenticated(true);
-          setAuthToken(storedToken); // Set axios default header
-        } else {
-          // Token expired, clear everything
-          clearAuthData();
+  //       // Check if token is still valid
+  //       if (isTokenValid(storedToken)) {
+  //         setToken(storedToken);
+  //         setUser(userData);
+  //         setIsAuthenticated(true);
+  //         setAuthToken(storedToken); // Set axios default header
+  //       } else {
+  //         // Token expired, clear everything
+  //         clearAuthData();
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error('Error initializing auth:', error);
+  //     clearAuthData();
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  const initializeAuth = async () => {
+    try {
+      const hasTabSession = sessionStorage.getItem(AUTH_TAB_MARKER) === 'true';
+
+      if (!hasTabSession) {
+        try {
+          await logoutSession();
+        } catch {
+          // Ignore logout failures during startup; the local tab state is still reset below.
         }
+        clearAuthData();
+        return;
       }
-    } catch (error) {
-      console.error('Error initializing auth:', error);
+
+      const response = await verifySession();
+
+      if (response.success) {
+        setUser(response.user);
+        setIsAuthenticated(true);
+      } else {
+        clearAuthData();
+      }
+    } catch {
       clearAuthData();
     } finally {
       setLoading(false);
@@ -74,6 +100,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   const checkTokenExpiration = () => {
+    // Cookie-backed auth is validated by /api/auth/verify during initialization.
+    // The browser cannot inspect an HttpOnly cookie, so there is no frontend token to decode here.
+    if (isAuthenticated && !token) {
+      return true;
+    }
+
     if (!token) {
       if (isAuthenticated) {
         logout(); // Auto logout if no token but marked as authenticated
@@ -89,32 +121,33 @@ export const AuthProvider = ({ children }) => {
     return isValid;
   };
 
-  const login = (accessToken) => {
+  const login = (userData) => {
     try {
-      if (!isTokenValid(accessToken)) {
-        throw new Error('Invalid or expired token');
-      }
+      // if (!isTokenValid(accessToken)) {
+      //   throw new Error('Invalid or expired token');
+      // }
 
-      const decoded = jwtDecode(accessToken);
-      const userData = {
-        id: decoded.sub || decoded.user_id,
-        email: decoded.email,
-        name: decoded.name || decoded.preferred_username,
-        roles: decoded.roles || [],
-        exp: decoded.exp
-      };
+      // const decoded = jwtDecode(accessToken);
+      // const userData = {
+      //   id: decoded.sub || decoded.user_id,
+      //   email: decoded.email,
+      //   name: decoded.name || decoded.preferred_username,
+      //   roles: decoded.roles || [],
+      //   exp: decoded.exp
+      // };
 
-      // Store in sessionStorage
-      sessionStorage.setItem('authToken', accessToken);
-      sessionStorage.setItem('authUser', JSON.stringify(userData));
+      // // Store in sessionStorage
+      // sessionStorage.setItem('authToken', accessToken);
+      // sessionStorage.setItem('authUser', JSON.stringify(userData));
 
-      // Update state
-      setToken(accessToken);
+      // // Update state
+      // setToken(accessToken);
+      sessionStorage.setItem(AUTH_TAB_MARKER, 'true');
       setUser(userData);
       setIsAuthenticated(true);
       
       // Set axios default header for future requests
-      setAuthToken(accessToken);
+      //setAuthToken(accessToken);
 
       return { success: true, user: userData };
     } catch (error) {
@@ -123,17 +156,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    clearAuthData();
-    
-    // Redirect to auth page
-    window.location.href = '/auth';
+  const logout = async () => {
+    try {
+      await logoutSession();
+    } finally {
+      clearAuthData();
+      window.location.href = '/auth';
+    }
   };
 
   const clearAuthData = () => {
     // Clear sessionStorage
-    sessionStorage.removeItem('authToken');
-    sessionStorage.removeItem('authUser');
+    // sessionStorage.removeItem('authToken');
+    // sessionStorage.removeItem('authUser');
+    sessionStorage.removeItem(AUTH_TAB_MARKER);
     
     // Clear state
     setToken(null);
@@ -157,7 +193,7 @@ export const AuthProvider = ({ children }) => {
         };
         
         setUser(userData);
-        sessionStorage.setItem('authUser', JSON.stringify(userData));
+        // sessionStorage.setItem('authUser', JSON.stringify(userData));
       } catch (error) {
         console.error('Error refreshing user data:', error);
         logout();

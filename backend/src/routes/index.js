@@ -13,9 +13,9 @@ router.use('/auth', authRoutes);
 router.get("/health", (req, res) => {
   res.json({ message: "Backend is running" });
 });
-
+const requireAuth = require('../middleware/requireAuth');
 // Mount product routes with site resolution middleware
-router.use('/sites/:siteCode', resolveSite);
+router.use('/sites/:siteCode', requireAuth, resolveSite);
 router.use('/sites/:siteCode/products', productRoutes);
 
 // Mount nextcap routes with site resolution middleware  

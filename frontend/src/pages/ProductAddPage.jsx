@@ -25,22 +25,28 @@ export default function ProductAddPage() {
   const [families, setFamilies] = useState([]);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [familiesLoading, setFamiliesLoading] = useState(false);
   const [checkingProduct, setCheckingProduct] = useState(false);
   const [productExists, setProductExists] = useState(null);
 
   // Load product families for dropdown
   useEffect(() => {
+    let ignore = false;
     async function loadFamilies() {
       try {
+        setFamiliesLoading(true);
         const response = await fetchProductFamilies(siteCode);
-        if (response.success) {
+        if (!ignore && response.success) {
           setFamilies(response.data);
         }
       } catch (error) {
         console.error('Error loading families:', error);
+      } finally {
+        if (!ignore) setFamiliesLoading(false);
       }
     }
     loadFamilies();
+    return () => { ignore = true; };
   }, [siteCode]);
 
   // Check if product exists when product number changes
@@ -198,9 +204,10 @@ export default function ProductAddPage() {
               value={form.productType}
               onChange={handleChange}
               required
+              disabled={familiesLoading}
               style={{ width: '100%', padding: '8px' }}
             >
-              <option value="">--Select Product Type--</option>
+              <option value="">{familiesLoading ? 'Loading product families...' : '--Select Product Type--'}</option>
               {families.map((family) => (
                 <option key={family.family_code} value={family.family_code}>
                   {family.family_name}

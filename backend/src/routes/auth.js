@@ -11,18 +11,47 @@ if (missingVars.length > 0) {
 }
 
 // JWT helper functions
+const getJwtExpiresInSeconds = () => {
+  const value = process.env.JWT_EXPIRES_IN || '28800';
+
+  if (/^\d+$/.test(value)) {
+    return Number(value);
+  }
+
+  const match = String(value).trim().match(/^(\d+)([smhd])$/i);
+  if (!match) {
+    return 28800;
+  }
+
+  const amount = Number(match[1]);
+  const unit = match[2].toLowerCase();
+  const multipliers = { s: 1, m: 60, h: 3600, d: 86400 };
+  return amount * multipliers[unit];
+};
+
 const createJWT = (userInfo) => {
   try {
     return jwt.sign({
       sub: userInfo.sub || userInfo.id || userInfo.email,
       email: userInfo.email,
       name: userInfo.name || userInfo.displayName,
-      roles: userInfo.roles || ['user'],
-      exp: Math.floor(Date.now() / 1000) + (60 * 60 * 8) // 8 hours
-    }, process.env.JWT_SECRET);
+      roles: userInfo.roles || ['user']
+    }, process.env.JWT_SECRET, {
+      expiresIn: getJwtExpiresInSeconds()
+    });
   } catch (error) {
     throw new Error('Failed to create JWT token');
   }
+};
+
+const setAuthCookie = (res, token) => {
+  res.cookie('auth_token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: getJwtExpiresInSeconds() * 1000,
+    path: '/'
+  });
 };
 
 const verifyJWT = (token) => {
@@ -100,6 +129,8 @@ router.post('/token', async (req, res) => {
         redirect_uri: process.env.OAUTH_REDIRECT_URI
       }
     });
+
+    console.log('🔀 REDIRECT_URI sent to HP OAuth:', process.env.OAUTH_REDIRECT_URI);
 
     const tokenResponse = await fetch(tokenUrl, {
       method: 'POST',
@@ -247,12 +278,11 @@ router.post('/token', async (req, res) => {
     console.log('🆔 User ID:', userInfo.sub || 'Not provided');
     console.log('📅 Login Timestamp:', new Date().toISOString());
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    
+    setAuthCookie(res, jwtToken);
     res.json({
       success: true,
-      access_token: jwtToken,
-      token_type: 'Bearer',
-      expires_in: 28800, // 8 hours
+      token_type: 'Cookie',
+      expires_in: getJwtExpiresInSeconds(),
       user: {
         id: userInfo.sub,
         email: userInfo.email,
@@ -353,11 +383,12 @@ router.post('/token/refresh', async (req, res) => {
 
     const newJwtToken = createJWT(userInfo);
     
+    setAuthCookie(res, newJwtToken);
+
     res.json({ 
-      access_token: newJwtToken,
-      token_type: 'Bearer',
-      expires_in: 28800,
-      refresh_token: data.refresh_token
+      success: true,
+      token_type: 'Cookie',
+      expires_in: getJwtExpiresInSeconds()
     });
 
   } catch (error) {
@@ -372,11 +403,10 @@ router.post('/token/refresh', async (req, res) => {
 // GET /api/auth/verify - Verify JWT token validity
 router.get('/verify', (req, res) => {
   try {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+    const token = req.cookies?.auth_token;
     
     if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
+      return res.status(401).json({ error: 'No auth cookie provided' });
     }
     
     const decoded = verifyJWT(token);
@@ -402,6 +432,18 @@ router.get('/verify', (req, res) => {
       message: error.message
     });
   }
+});
+
+// POST /api/auth/logout - Clear auth cookie
+router.post('/logout', (req, res) => {
+  res.clearCookie('auth_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    path: '/'
+  });
+
+  res.json({ success: true });
 });
 
 module.exports = router;
