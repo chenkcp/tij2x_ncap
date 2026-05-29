@@ -15,8 +15,8 @@ RUN test -f .env.production && echo ".env.production found" || echo "WARNING: .e
 RUN npm run build
 
 # ---------- Backend Runtime ----------
-# We stick to Bookworm-slim because MS ODBC drivers are easier to manage on Debian
-FROM node:22-bookworm-slim
+# The backend uses the Node mssql package through MSSQLDbProvider, so no ODBC driver is required.
+FROM node:22-alpine
 
 ENV NODE_ENV=production \
     NPM_CONFIG_UPDATE_NOTIFIER=false \
@@ -24,39 +24,11 @@ ENV NODE_ENV=production \
     PORT=5000
 WORKDIR /app/backend
 
-# Switch to root to perform system-level updates and driver installs
+# Switch to root for system package updates and permissions
 USER root
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-      curl gnupg ca-certificates apt-transport-https && \
-    # Microsoft ODBC repo
-    curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
-      | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] \
-      https://packages.microsoft.com/debian/12/prod bookworm main" \
-      > /etc/apt/sources.list.d/microsoft-prod.list && \
-    apt-get update && \
-    ACCEPT_EULA=Y apt-get install -y --no-install-recommends \
-      msodbcsql17 \
-      unixodbc \
-      unixodbc-dev \
-    #   # CVE-2026-33845: GnuTLS DTLS integer underflow
-    #   libgnutls30 \
-    #   # CVE-2025-7458: SQLite integer overflow in ORDER BY
-    #   libsqlite3-0 \
-    #   # CVE-2026-7598: libssh2 userauth integer overflow
-    #   libssh2-1 \
-      # odbc native addon build tools
-      build-essential \
-      python3 && \
-    #  zlib1g && \
-    # Upgrade ALL installed packages — catches transitive CVEs
-    # and pulls latest backports for libgnutls30, libsqlite3-0, libssh2-1
-    apt-get upgrade -y && \
-    #chown -R node:node /app/backend && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache ca-certificates && \
+    apk upgrade --no-cache
 # Set permissions before switching to non-root user
 RUN chown -R node:node /app/backend
 USER node
